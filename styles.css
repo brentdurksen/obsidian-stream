@@ -1,0 +1,59 @@
+:root {
+	--bg-color: #fff9f9;
+	--text-color: #333;
+}
+
+.soc-bgContainer {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: var(--bg-color);
+	z-index: 1000;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+}
+
+.soc-centeredContainer {
+	position: relative;
+	margin-right: 20%;
+	width: 50%;
+	height: 1.2em;
+	text-align: right;
+	font-family: monospace;
+	overflow: hidden;
+	white-space: nowrap;
+	font-size: 3em;
+	direction: rtl;
+	color: var(--text-color);
+}
+
+.soc-fadeOverlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: linear-gradient(
+		to right,
+		var(--bg-color) 0%,
+		transparent 50%,
+		transparent 100%
+	);
+}
+
+.soc-cursor {
+	position: absolute;
+	top: 0;
+	right: 0;
+	width: 2px;
+	height: 100%;
+	padding-left: 2px;
+}
+
+.soc-cursor-on {
+	background-color: var(--text-color);
+}

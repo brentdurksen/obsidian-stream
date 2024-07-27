@@ -1,0 +1,10 @@
+{
+	"id": "stream-of-consciousness",
+	"name": "Stream of Consciousness",
+	"version": "1.0.0",
+	"minAppVersion": "0.15.0",
+	"description": "Edit notes in a fullscreen stream of consciousness mode.",
+	"author": "Brent Durksen",
+	"authorUrl": "https://durksen.com",
+	"isDesktopOnly": true
+}
