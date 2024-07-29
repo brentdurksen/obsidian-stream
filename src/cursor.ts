@@ -1,40 +1,36 @@
+const CURSOR_TIMING = 500;
+const CURSOR_CLASS = "soc-cursor";
+const CURSOR_VISIBLE_CLASS = "soc-cursorVisible";
+
 export class Cursor {
 	public element: HTMLDivElement;
 	private interval: number;
-
 	constructor() {
 		this.element = document.createElement("div");
-		this.element.addClass("soc-cursor");
-
+		this.element.addClass(CURSOR_CLASS);
 		this.setInterval();
 	}
-
-	private hideCursor() {
-		this.element.removeClass("soc-cursor-on");
-	}
-
 	private showCursor() {
-		this.element.addClass("soc-cursor-on");
+		this.element.classList.add(CURSOR_VISIBLE_CLASS);
 	}
-
+	private hideCursor() {
+		this.element.classList.remove(CURSOR_VISIBLE_CLASS);
+	}
 	private setInterval() {
 		this.showCursor();
 		this.interval = window.setInterval(() => {
 			this.toggleCursor();
-		}, 500);
+		}, CURSOR_TIMING);
 	}
-
 	private toggleCursor() {
-		this.element.classList.contains("soc-cursor-on")
+		this.element.classList.contains(CURSOR_VISIBLE_CLASS)
 			? this.hideCursor()
 			: this.showCursor();
 	}
-
 	reset() {
 		window.clearInterval(this.interval);
 		this.setInterval();
 	}
-
 	unload() {
 		window.clearInterval(this.interval);
 	}

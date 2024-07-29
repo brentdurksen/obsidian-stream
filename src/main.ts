@@ -1,4 +1,4 @@
-import { Editor, MarkdownView, Plugin } from "obsidian";
+import { Editor, Plugin } from "obsidian";
 import {
 	DEFAULT_SETTINGS,
 	StreamOfConsciousnessSettings,
@@ -23,6 +23,7 @@ export default class StreamOfConsciousnessPlugin extends Plugin {
 			(leaf) => new FullscreenStreamView(leaf)
 		);
 
+		// Add command to open fullscreen stream of consciousness
 		this.addCommand({
 			id: "fullscreen-stream",
 			name: "Fullscreen stream of consciousness",
@@ -31,34 +32,13 @@ export default class StreamOfConsciousnessPlugin extends Plugin {
 			},
 		});
 
-		// TODO: move to separate plugin
-		// This adds an editor command that can perform some operation on the current editor instance
-		this.addCommand({
-			id: "todays-journal",
-			name: "Open today's journal entry",
-
-			editorCallback: async (editor: Editor, view: MarkdownView) => {
-				const today = new Date();
-				const path = `Journal/${today.toISOString().slice(0, 10)}.md`;
-
-				let file = this.app.vault.getFileByPath(path);
-				if (!file) {
-					file = await this.app.vault.create(path, "");
-				}
-				const link = this.app.fileManager.generateMarkdownLink(
-					file,
-					this.app.workspace.getActiveFile()?.path ?? ""
-				);
-				editor.replaceSelection(link);
-				this.app.workspace.openLinkText(path, path, true);
-			},
-		});
-
-		// This adds a settings tab so the user can configure various aspects of the plugin
+		// Add settings tab
 		this.addSettingTab(new StreamSettingTab(this.app, this));
 	}
 
-	onunload() {}
+	onunload() {
+		removeStreamLeaves(this.app.workspace);
+	}
 
 	async loadSettings() {
 		this.settings = Object.assign(
@@ -95,36 +75,26 @@ export default class StreamOfConsciousnessPlugin extends Plugin {
 
 		// <bdi> renders punctuation correctly in RTL text
 		const bdi = document.createElement("bdi");
+		bdi.classList.add("soc-text");
 		centeredContainer.appendChild(bdi);
-
-		// Fade overlay
-		const fadeToLeftOverlay = document.createElement("div");
-		fadeToLeftOverlay.classList.add("soc-fadeOverlay");
-		centeredContainer.appendChild(fadeToLeftOverlay);
 
 		// Cursor
 		const cursor = new Cursor();
 		centeredContainer.appendChild(cursor.element);
 
-		const noModifiers = (e: KeyboardEvent) =>
+		// Add keyboard event listeners
+		const noModifierKeys = (e: KeyboardEvent) =>
 			!e.ctrlKey && !e.altKey && !e.metaKey;
-
-		const keyHandler = (e: KeyboardEvent) => {
+		const keyDownHandler = (e: KeyboardEvent) => {
 			if (
 				e.key === "Backspace" &&
 				bdi.innerHTML.length &&
-				noModifiers(e) &&
+				noModifierKeys(e) &&
 				this.settings.allowBackspace
 			) {
-				if (bdi.innerHTML.length && editor) {
-					deleteLastCharacter(editor);
-				}
 				bdi.innerHTML = bdi.innerHTML.slice(0, -1);
-			} else if (e.key.length === 1 && noModifiers(e) && editor) {
-				// prevent double spaces
-				if (e.key === " " && bdi.innerHTML.slice(-1) === " ") {
-					return;
-				}
+				deleteLastCharacter(editor);
+			} else if (e.key.length === 1 && noModifierKeys(e) && editor) {
 				bdi.innerHTML += e.key;
 				editor.replaceSelection(e.key);
 			} else {
@@ -132,32 +102,24 @@ export default class StreamOfConsciousnessPlugin extends Plugin {
 				e.stopPropagation();
 				return;
 			}
-
 			// keep cursor visible while typing
 			cursor.reset();
-
-			// hack to add padding if last character is a space
-			if (bdi.innerHTML.slice(-1) === " ") {
-				bdi.style.paddingRight = "0.4em";
-			} else {
-				bdi.style.paddingRight = "0";
-			}
 		};
-		document.addEventListener("keydown", keyHandler);
+		document.addEventListener("keydown", keyDownHandler);
 
 		// cleanup when exiting fullscreen
-		const handleFullscreenChange = (e: Event) => {
+		const fullscreenChangeHandler = (e: Event) => {
 			if (document.fullscreenElement !== container) {
 				cursor.unload();
-				document.removeEventListener("keydown", keyHandler);
+				document.removeEventListener("keydown", keyDownHandler);
 				fullScreenBackground.remove();
 				removeStreamLeaves(this.app.workspace);
 				e.target?.removeEventListener(
 					"fullscreenchange",
-					handleFullscreenChange
+					fullscreenChangeHandler
 				);
 			}
 		};
-		container.addEventListener("fullscreenchange", handleFullscreenChange);
+		container.addEventListener("fullscreenchange", fullscreenChangeHandler);
 	}
 }
